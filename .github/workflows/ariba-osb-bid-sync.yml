@@ -3,16 +3,13 @@ name: Ariba OSB Bid Sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
 
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repo
-        uses: actions/checkout@v4
-
       - name: Install lftp
         run: sudo apt-get update && sudo apt-get install -y lftp
 
@@ -29,7 +26,6 @@ jobs:
           lftp <<EOF
           set net:timeout 20
           set net:max-retries 1
-          set net:reconnect-interval-base 5
           set sftp:auto-confirm yes
           set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa"
           open -u "$AGENCY_SFTP_USER","$AGENCY_SFTP_PASS" sftp://$AGENCY_SFTP_HOST:$AGENCY_SFTP_PORT
@@ -50,7 +46,6 @@ jobs:
           lftp <<EOF
           set net:timeout 20
           set net:max-retries 1
-          set net:reconnect-interval-base 5
           set sftp:auto-confirm yes
           set sftp:connect-program "ssh -a -x -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedAlgorithms=+ssh-rsa"
           open -u "$AGENCY_SFTP_USER","$AGENCY_SFTP_PASS" sftp://$AGENCY_SFTP_HOST:$AGENCY_SFTP_PORT
@@ -67,6 +62,7 @@ jobs:
           with open('work/ariba.csv', newline='', encoding='utf-8-sig') as f:
               rows = list(csv.DictReader(f))
 
+          # Optional: filter only published
           rows = [r for r in rows if r.get("Status") == "Published"]
 
           with open('work/ariba_discovery_current.json', 'w', encoding='utf-8') as f:
@@ -86,7 +82,6 @@ jobs:
           lftp <<EOF
           set net:timeout 20
           set net:max-retries 1
-          set net:reconnect-interval-base 5
           set sftp:auto-confirm yes
           open -u "$WPE_SFTP_USER","$WPE_SFTP_PASS" sftp://$WPE_SFTP_HOST:$WPE_SFTP_PORT
           put work/ariba_discovery_current.json -o "$WPE_TARGET_PATH"
