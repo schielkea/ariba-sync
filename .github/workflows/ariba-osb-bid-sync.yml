@@ -1,4 +1,4 @@
-name: Ariba OSB Bid Sync
+name: Ariba OSB Bid Sync v2
 
 on:
   workflow_dispatch:
