@@ -28,6 +28,7 @@ jobs:
 
           lftp -u "$AGENCY_SFTP_USER","$AGENCY_SFTP_PASS" sftp://$AGENCY_SFTP_HOST:$AGENCY_SFTP_PORT <<'EOF'
           set sftp:auto-confirm yes
+          cd /work
           cls -1 > filelist.txt
           bye
           EOF
@@ -35,7 +36,7 @@ jobs:
           LATEST_FILE=$(grep '^Ariba_Discovery_Events[0-9]\{14\}\.csv$' filelist.txt | sort | tail -n 1)
 
           if [ -z "$LATEST_FILE" ]; then
-            echo "No matching CSV file found."
+            echo "No matching CSV file found in /work"
             exit 1
           fi
 
@@ -43,6 +44,7 @@ jobs:
 
           lftp -u "$AGENCY_SFTP_USER","$AGENCY_SFTP_PASS" sftp://$AGENCY_SFTP_HOST:$AGENCY_SFTP_PORT <<EOF
           set sftp:auto-confirm yes
+          cd /work
           get "$LATEST_FILE" -o ariba.csv
           bye
           EOF
@@ -51,10 +53,13 @@ jobs:
         run: |
           python3 - <<'PY'
           import csv, json
+
           with open('work/ariba.csv', newline='', encoding='utf-8-sig') as f:
               rows = list(csv.DictReader(f))
+
           with open('work/ariba_discovery_current.json', 'w', encoding='utf-8') as f:
               json.dump(rows, f, indent=2)
+
           print(f"Converted {len(rows)} rows")
           PY
 
