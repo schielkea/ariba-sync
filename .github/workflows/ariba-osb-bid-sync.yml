@@ -3,7 +3,7 @@ name: Ariba OSB Bid Sync
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/30 * * * *"
 
 jobs:
   sync:
@@ -41,7 +41,7 @@ jobs:
           LATEST_FILE=$(grep '^Ariba_Discovery_Events[0-9]\{14\}\.csv$' filelist.txt | sort | tail -n 1)
 
           if [ -z "$LATEST_FILE" ]; then
-            echo "No matching CSV file found in /work"
+            echo "No matching CSV file found"
             exit 1
           fi
 
@@ -62,11 +62,12 @@ jobs:
       - name: Convert CSV to JSON
         run: |
           python3 - <<'PY'
-          import csv
-          import json
+          import csv, json
 
-          with open('work/ariba_discovery_current.json', 'w', encoding='utf-8') as f:
+          with open('work/ariba.csv', newline='', encoding='utf-8-sig') as f:
               rows = list(csv.DictReader(f))
+
+          rows = [r for r in rows if r.get("Status") == "Published"]
 
           with open('work/ariba_discovery_current.json', 'w', encoding='utf-8') as f:
               json.dump(rows, f, indent=2)
