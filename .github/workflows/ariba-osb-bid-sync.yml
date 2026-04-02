@@ -3,7 +3,7 @@ name: Ariba OSB Bid Sync v2
 on:
   workflow_dispatch:
   schedule:
-    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
+    - cron: "*/10 * * * *"
 
 jobs:
   sync:
